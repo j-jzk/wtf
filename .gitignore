@@ -1,0 +1,7 @@
+# Python folders
+venv
+src/__pycache__
+
+# Testing programs
+test.wtf
+test.bf
