@@ -2,20 +2,14 @@ from sly import Lexer
 
 class WtfLexer(Lexer):
     # tokens
-    tokens = {ID, LIT_CHAR, LIT_INT, LIT_STR, CMP_EQ, CMP_NEQ} 
+    tokens = {ID, LIT_CHAR, LIT_INT, LIT_STR, CMP_EQ, CMP_NEQ, KW_VAR} 
     literals = {';', '=', '+', '-', '(', ')', ',', '!', '{', '}'}
 
-    #@_(r'prints "[^"]*"')
-    #def KW_PRINTS(self, t):
-    #    t.value = t.value[7:-1]
-    #    return t
-
     ID = '[a-zA-Z_][a-zA-Z0-9_]*'
+    ID['var'] = KW_VAR
+
     CMP_EQ = '=='
     CMP_NEQ = '!='
-
-#    ID['read'] = KW_READ
-#    ID['print'] = KW_PRINT
 
     @_(r'\d+')
     def LIT_INT(self, t):

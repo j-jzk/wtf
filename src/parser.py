@@ -23,12 +23,14 @@ class WtfParser(Parser):
     def code_block(self, p): return rules.CodeBlock(p.program)
 
     # regular commands
-    @_('assignment')
-    def command(self, p): return p.assignment
-    @_('func_call')
-    def command(self, p): return p.func_call
+    @_('assignment', 'declaration', 'func_call')
+    def command(self, p): return p[0]
 
-    # assignment
+    # variable declaration and assignment
+    @_('KW_VAR ID')
+    def declaration(self, p): return rules.Declaration(p.ID, None)
+    @_('KW_VAR ID "=" expr')
+    def declaration(self, p): return rules.Declaration(p.ID, p.expr)
     @_('ID "=" expr')
     def assignment(self, p): return rules.Assignment('=', p.ID, p.expr)
 

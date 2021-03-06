@@ -54,9 +54,13 @@ class Machine:
         variables = {}
 
         for cmd in block.commands:
-            if type(cmd) == rules.Assignment and not cmd.target in variables:
-                variables[cmd.target] = ptr 
-                ptr += 1
+            if type(cmd) == rules.Declaration:
+                if not cmd.name in variables:
+                    variables[cmd.name] = ptr 
+                    ptr += 1
+                else:
+                    raise Exception('Duplicit variable declaration (%s)' % cmd.name)
+            
 
         self.goto_pos(ptr)
         return variables
@@ -81,6 +85,9 @@ class Machine:
                 self.eval_func(vars, cmd)
             elif type(cmd) == rules.Assignment:
                 self.assign(vars, cmd)
+            elif type(cmd) == rules.Declaration and cmd.value:
+                # declaration with assignment
+                self.assign(vars, rules.Assignment('=', cmd.name, cmd.value))
             elif type(cmd) == rules.CodeBlock:
                 self.eval_block(vars, cmd)
         self.debug('</eval_block>')
@@ -245,9 +252,9 @@ if __name__ == '__main__':
 
     wtf_prog = WtfParser().parse(WtfLexer().tokenize(string))
     machine = Machine()
-    try:
-        machine.eval_block([], rules.CodeBlock(wtf_prog))
-    except:
-        pass  #only for debugging
+    #try:
+    machine.eval_block([], rules.CodeBlock(wtf_prog))
+    #except:
+    #    pass  #only for debugging
 
     print(machine.bf_program)

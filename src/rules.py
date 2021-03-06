@@ -37,4 +37,16 @@ class CodeBlock:
         self.commands = commands
 
     def __str__(self):
-        return 'code block'
+        return 'Code block'
+
+class Declaration:
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def __str__(self):
+        val_str = ''
+        if self.value:
+            val_str = ' = %s' % self.value
+
+        return 'Variable declaration: %s%s' % (self.name, val_str)
