@@ -8,9 +8,11 @@ The compiler contains a class called Machine which acts as an abstraction layer.
 You instruct it to do a certain action (assign a variable for example) and it generates the brainfuck code that would do the action.
 
 The machine keeps an internal tape position variable. It must be set correctly in order to access the variables and do certain commands.
-There is also a variable called `stack_ptr` which doesn't do anything useful.
+There is also a variable called `stack_ptr` which doesn't do anything.
 
-At the start of the program, space is reserved at the beginning of the tape for the variables. The space after it is then used as a stack or a store for temporary values.
-This will have to be modified in order to make local variables (in code blocks and functions) possible.
-
+### Code blocks and variables
+At the start of the program or a code block, the machine reserves space for the variables in that block.
+The allocation function then returns a dict of positions of all the variables.
+Functions that generate code then pass around a list of those dicts, each corresponding to a different nesting level.
+The variable list is passed as a function parameter instead of an instance variable to make the future implementation of functions easier.
 

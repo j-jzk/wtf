@@ -67,7 +67,7 @@ class Machine:
 
     def _get_var_pos(vars, name):
         """Returns a variable's position on the tape"""
-        for closure in reversed(vars):
+        for closure in vars:
             if name in closure:
                 return closure[name]
         
@@ -77,7 +77,7 @@ class Machine:
     def eval_block(self, vars_, block):
         self.debug('<eval_block>')
 
-        vars = vars_ + [self.init_variables(block)]
+        vars = [self.init_variables(block)] + vars_
         self.debug('variables: %s' % vars)
 
         for cmd in block.commands:

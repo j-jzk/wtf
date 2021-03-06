@@ -2,12 +2,14 @@
 Each command ends with a semicolon. Comments start with a hash `#`.
 
 ## Variables
-Variables are declared automatically as they are defined.
-(Note that this behavior might change with the future introduction of types).
+Variables must be declared with `var` first.
 
-You can set a variable like this:
+Examples:
 ```wtf
-variable = value;
+var foo;      #just declaration
+var bar = 1;  #declaration with assignment
+foo = 12 + 8; #assignment
+baz = 'a';    #ERROR - undeclared variable
 ```
 
 Variables don't currently have any datatypes and are simply pointers to different cells on the tape.
