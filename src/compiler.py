@@ -88,8 +88,14 @@ class Machine:
             elif type(cmd) == rules.Declaration and cmd.value:
                 # declaration with assignment
                 self.assign(vars, rules.Assignment('=', cmd.name, cmd.value))
+            elif type(cmd) == rules.Declaration:
+                pass
             elif type(cmd) == rules.CodeBlock:
                 self.eval_block(vars, cmd)
+            elif type(cmd) == rules.ControlStmt:
+                self.eval_control(vars, cmd)
+            else:
+                raise Exception('Invalid command type: %s' % type(cmd))
         self.debug('</eval_block>')
 
     def eval_expr(self, vars, expr):
@@ -186,7 +192,7 @@ class Machine:
                 raise Exception('`prints` accepts exactly one parameter')
 
             for char in func.params[0].value:
-                self.eval_func(rules.FuncCall('print',
+                self.eval_func(vars, rules.FuncCall('print',
                     [rules.Literal('char', char)]))
         elif func.func == 'normbool':
             if len(func.params) != 1:
@@ -215,6 +221,50 @@ class Machine:
         else:
             raise Exception('Function %s does not exist' % func.func)
         self.debug('</eval_func>')
+
+    def eval_control(self, vars, stmt):
+        self.debug('<eval_control> %s' % stmt)
+
+        if stmt.type == 'if':
+            self.eval_expr(vars, stmt.params)
+
+            # self-explanatory
+            self.bf_program += '[>'
+            self.tape_pos += 1
+            
+            # if it isn't, enclose the if's body in a block
+            # or else things like `if (...) var a;` would do unexpected things
+            if type(stmt.command) == rules.CodeBlock:
+                self.eval_block(vars, stmt.command)
+            else:
+                self.eval_block(vars, rules.CodeBlock([stmt.command]))
+
+            # set the control value to 0 and end the statement
+            self.bf_program += '<[-]]'
+            self.tape_pos -= 1
+        elif stmt.type == 'while':
+            self.eval_expr(vars, stmt.params)
+
+            # self-explanatory
+            self.bf_program += '[>'
+            self.tape_pos += 1
+            
+            # if it isn't, enclose the while's body in a block
+            if type(stmt.command) == rules.CodeBlock:
+                self.eval_block(vars, stmt.command)
+            else:
+                self.eval_block(vars, rules.CodeBlock([stmt.command]))
+
+            # evaluate the expression again and end the [] 
+            self.bf_program += '<'
+            self.tape_pos -= 1
+
+            self.eval_expr(vars, stmt.params)
+            self.bf_program += ']'
+        else:
+            raise Exception('Invalid statement type `%s`' % stmt.type)
+
+        self.debug('</eval_control>')
 
     def assign(self, vars, assignment):
         self.debug('<assign> %s' % assignment)

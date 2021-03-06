@@ -2,11 +2,13 @@ from sly import Lexer
 
 class WtfLexer(Lexer):
     # tokens
-    tokens = {ID, LIT_CHAR, LIT_INT, LIT_STR, CMP_EQ, CMP_NEQ, KW_VAR} 
+    tokens = {ID, LIT_CHAR, LIT_INT, LIT_STR, CMP_EQ, CMP_NEQ, KW_VAR, KW_IF, KW_WHILE} 
     literals = {';', '=', '+', '-', '(', ')', ',', '!', '{', '}'}
 
     ID = '[a-zA-Z_][a-zA-Z0-9_]*'
     ID['var'] = KW_VAR
+    ID['if'] = KW_IF
+    ID['while'] = KW_WHILE
 
     CMP_EQ = '=='
     CMP_NEQ = '!='

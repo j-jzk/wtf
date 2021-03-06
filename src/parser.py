@@ -11,10 +11,8 @@ class WtfParser(Parser):
     )
 
     # overall program structure
-    @_('command ";" program')
+    @_('command program')
     def program(self, p): return [p.command] + p.program
-    @_('code_block program')
-    def program(self, p): return [p.code_block] + p.program
     @_('empty')
     def program(self, p): return []
 
@@ -23,8 +21,10 @@ class WtfParser(Parser):
     def code_block(self, p): return rules.CodeBlock(p.program)
 
     # regular commands
-    @_('assignment', 'declaration', 'func_call')
+    @_('assignment ";"', 'declaration ";"', 'func_call ";"', 'code_block')
     def command(self, p): return p[0]
+    @_('KW_IF "(" expr ")" command', 'KW_WHILE "(" expr ")" command')
+    def command(self, p): return rules.ControlStmt(p[0], p.expr, p.command)
 
     # variable declaration and assignment
     @_('KW_VAR ID')

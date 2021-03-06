@@ -50,3 +50,12 @@ class Declaration:
             val_str = ' = %s' % self.value
 
         return 'Variable declaration: %s%s' % (self.name, val_str)
+
+class ControlStmt:
+    def __init__(self, type, params, command):
+        self.type = type
+        self.params = params
+        self.command = command
+
+    def __str__(self):
+        return 'Control statement: %s %s: %s' % (self.type, self.params, self.command)

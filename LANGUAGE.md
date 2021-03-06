@@ -44,6 +44,31 @@ x = 4 == 5 - 1;    #x = 4 == (5-1)   -> 4 == 4 -> 1
 x = (4 == 5) - 1;  #x = (4 == 5) - 1 -> 1 - 1  -> 0
 ```
 
+## Conditions and loops
+WTF supports `if` and `while` statements. The body is executed if the condition is non-zero.
+
+Examples:
+```wtf
+# if statement with a single command
+if (1)
+	prints("Hello"); 
+
+# if statement with multiple commands
+if (2 + 2 == 5) {
+	prints("yo what the hell");
+	print(2 + 2);
+}
+
+# while loop - counts from 0 to 9
+var i = 0;
+while (i != 10) {
+	print(i + '0');
+	print('\n');
+
+	i = i + 1;
+}
+```
+
 ## Functions
 Functions are called with parenthesis like this:
 ```wtf
