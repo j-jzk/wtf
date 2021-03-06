@@ -44,7 +44,48 @@ class Machine:
                 .replace('!', '(?)') # beef (brainfuck interpreter) ignores everything after !
             self.bf_program += '\n'
 
-    def eval_expr(self, expr):
+    def init_variables(self, block):
+        """
+        Allocates space for the variables defined in a code block and returns
+        a dict with their positions
+        """
+
+        ptr = self.tape_pos
+        variables = {}
+
+        for cmd in block.commands:
+            if type(cmd) == rules.Assignment and not cmd.target in variables:
+                variables[cmd.target] = ptr 
+                ptr += 1
+
+        self.goto_pos(ptr)
+        return variables
+
+    def _get_var_pos(vars, name):
+        """Returns a variable's position on the tape"""
+        for closure in reversed(vars):
+            if name in closure:
+                return closure[name]
+        
+        # variable not found
+        raise Exception("Undeclared variable '%s'" % name)
+
+    def eval_block(self, vars_, block):
+        self.debug('<eval_block>')
+
+        vars = vars_ + [self.init_variables(block)]
+        self.debug('variables: %s' % vars)
+
+        for cmd in block.commands:
+            if type(cmd) == rules.FuncCall:
+                self.eval_func(vars, cmd)
+            elif type(cmd) == rules.Assignment:
+                self.assign(vars, cmd)
+            elif type(cmd) == rules.CodeBlock:
+                self.eval_block(vars, cmd)
+        self.debug('</eval_block>')
+
+    def eval_expr(self, vars, expr):
         self.debug('<eval_expr>: %s' % expr)
 
         if type(expr) == rules.Literal:
@@ -55,22 +96,22 @@ class Machine:
             elif expr.type == 'char':
                 self.bf_program += '+' * ord(expr.value)
             elif expr.type == 'id':
-                self.eval_id(expr)
+                self.eval_id(vars, expr)
         elif type(expr) == rules.FuncCall:
-            self.eval_func(expr)
+            self.eval_func(vars, expr)
         elif type(expr) == rules.BinaryOp:
-            self.eval_operation(expr)
+            self.eval_operation(vars, expr)
 
         self.debug('</eval_expr>')
 
-    def eval_operation(self, expr):
+    def eval_operation(self, vars, expr):
         self.debug('<eval_operation>: %s' % expr)
 
         def _eval_params():
-            self.eval_expr(expr.left)
+            self.eval_expr(vars, expr.left)
             self.bf_program += '>'
             self.tape_pos += 1
-            self.eval_expr(expr.right)
+            self.eval_expr(vars, expr.right)
 
             self.bf_program += '<'
             self.tape_pos -= 1
@@ -83,48 +124,44 @@ class Machine:
             # subtract the values.
             # if the resulting value is 0, the operands are equal => false (0)
             # if the value != 0, they are not equal => true (1)
-            self.eval_func(rules.FuncCall('normbool', [
+            self.eval_func(vars, rules.FuncCall('normbool', [
                 rules.BinaryOp('-', expr.left, expr.right)]))
         elif expr.op == '==': # '=='
             # equality is implemented through negated inequality
-            self.eval_func(rules.FuncCall('not', [
+            self.eval_func(vars, rules.FuncCall('not', [
                 rules.BinaryOp('!=', expr.left, expr.right)]))
 
         self.debug('</eval_operation>')
 
-        
-
-    def eval_id(self, id):
+    def eval_id(self, vars, id):
         self.debug('<eval_id>: %s\n' % id)
 
-        if not id.value in self.variables:
-            raise Exception('Undeclared identifier %s' % id.value)
-        else:
-            self.bf_program += '[-]>[-]<' #reset the cells we will be using
-            pos = self.tape_pos #the starting position
-            var_pos = self.variables[id.value] #position of the variable
+        self.bf_program += '[-]>[-]<' #reset the cells we will be using
+        pos = self.tape_pos #the starting position
+        var_pos = Machine._get_var_pos(vars, id.value) #position of the variable
 
-            # destructively copy the var's value into two cells
-            self.goto_pos(var_pos)
-            self.bf_program += '[-'
-            self.goto_pos(pos)
-            self.bf_program += '+>+<'
-            self.goto_pos(var_pos)
-            self.bf_program += ']'
-            self.goto_pos(pos + 1)
+        # destructively copy the var's value into two cells
+        self.goto_pos(var_pos)
+        self.bf_program += '[-'
+        self.goto_pos(pos)
+        self.bf_program += '+>+<'
+        self.goto_pos(var_pos)
+        self.bf_program += ']'
+        self.goto_pos(pos + 1)
 
-            # move one of the values back to the original place
-            self.bf_program += '[-'
-            self.goto_pos(var_pos)
-            self.bf_program += '+'
-            self.goto_pos(pos + 1)
-            self.bf_program += '] <' #end loop and move back to the orig. position
+        # move one of the values back to the original place
+        self.bf_program += '[-'
+        self.goto_pos(var_pos)
+        self.bf_program += '+'
+        self.goto_pos(pos + 1)
+        self.bf_program += '] <' #end loop and move back to the orig. position
 
-            # set the position correctly (we moved 1 cell left manually)
-            self.tape_pos -= 1
+        # set the position correctly (we moved 1 cell left manually)
+        self.tape_pos -= 1
+
         self.debug('</eval_id>')
 
-    def eval_func(self, func):
+    def eval_func(self, vars, func):
         self.debug('<eval_func>: %s' % func)
 
         # TODO add a generic param length (and type?) check
@@ -135,7 +172,7 @@ class Machine:
             if len(func.params) != 1:
                 raise Exception('`print` accepts exactly one parameter')
 
-            self.eval_expr(func.params[0])
+            self.eval_expr(vars, func.params[0])
             self.bf_program += '.'
         elif func.func == 'prints':
             if len(func.params) != 1:
@@ -150,7 +187,7 @@ class Machine:
 
             # normalize a boolean - if the value != 0, set it to exactly 1
             
-            self.eval_expr(func.params[0])
+            self.eval_expr(vars, func.params[0])
             # preparation
             self.bf_program += '>[-]<' 
             # if the cell != 0, set it to 0 and set the temporary value to 1
@@ -159,7 +196,7 @@ class Machine:
             self.bf_program += '>[-<+>]<'
         elif func.func == 'not':
             # invert a boolean value (must be exactly 0 or 1)
-            self.eval_expr(func.params[0])
+            self.eval_expr(vars, func.params[0])
 
             # preparation
             self.bf_program += '>[-]+<'
@@ -172,20 +209,22 @@ class Machine:
             raise Exception('Function %s does not exist' % func.func)
         self.debug('</eval_func>')
 
-    def assign(self, assignment):
+    def assign(self, vars, assignment):
         self.debug('<assign> %s' % assignment)
 
+        var_pos = Machine._get_var_pos(vars, assignment.target)
+        
         if assignment.op == '=':
-            self.eval_expr(assignment.expr)
+            self.eval_expr(vars, assignment.expr)
             pos = self.tape_pos
 
             # reset the variable's value
-            self.goto_pos(self.variables[assignment.target])
+            self.goto_pos(var_pos)
             self.bf_program += '[-]'
             self.goto_pos(pos)
 
             self.bf_program += '[-'
-            self.goto_pos(self.variables[assignment.target])
+            self.goto_pos(var_pos)
             self.bf_program += '+'
             self.goto_pos(pos)
             self.bf_program += ']'
@@ -193,30 +232,6 @@ class Machine:
             raise Exception('Assignment type `%s` is invalid' % assignment.op)
         self.debug('</assign>')
         
-
-class Compiler:
-    def __init__(self, wtf_program):
-        self.machine = Machine()
-        self.wtf_program = wtf_program
-
-    def init_variables(self):
-        """Allocates space for the variables"""
-        count = 0
-        for cmd in self.wtf_program:
-            if type(cmd) == rules.Assignment and not cmd.target in self.machine.variables:
-                self.machine.variables[cmd.target] = count 
-                count += 1
-
-        self.machine.stack_ptr = count #set the stack beginning to the end of the var space
-        self.machine.goto_pos(count)
-
-    def compile(self):
-        for cmd in self.wtf_program:
-            if type(cmd) == rules.FuncCall:
-                self.machine.eval_func(cmd)
-            elif type(cmd) == rules.Assignment:
-                self.machine.assign(cmd)
-
 
 if __name__ == '__main__':
     string = ''
@@ -229,13 +244,10 @@ if __name__ == '__main__':
             break
 
     wtf_prog = WtfParser().parse(WtfLexer().tokenize(string))
-    comp = Compiler(wtf_prog)
+    machine = Machine()
+    try:
+        machine.eval_block([], rules.CodeBlock(wtf_prog))
+    except:
+        pass  #only for debugging
 
-    comp.init_variables()
-    if comp.machine.enableDebug:
-        comp.machine.debug('variables: %s' % comp.machine.variables)
-
-    comp.compile()
-
-
-    print(comp.machine.bf_program)
+    print(machine.bf_program)

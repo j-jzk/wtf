@@ -13,9 +13,16 @@ class WtfParser(Parser):
     # overall program structure
     @_('command ";" program')
     def program(self, p): return [p.command] + p.program
+    @_('code_block program')
+    def program(self, p): return [p.code_block] + p.program
     @_('empty')
     def program(self, p): return []
 
+    # code blocks
+    @_('"{" program "}"')
+    def code_block(self, p): return rules.CodeBlock(p.program)
+
+    # regular commands
     @_('assignment')
     def command(self, p): return p.assignment
     @_('func_call')

@@ -31,3 +31,10 @@ class Literal:
 
     def __str__(self):
         return '%s: \'%s\'' % (self.type, self.value)
+
+class CodeBlock:
+    def __init__(self, commands):
+        self.commands = commands
+
+    def __str__(self):
+        return 'code block'

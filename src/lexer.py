@@ -3,7 +3,7 @@ from sly import Lexer
 class WtfLexer(Lexer):
     # tokens
     tokens = {ID, LIT_CHAR, LIT_INT, LIT_STR, CMP_EQ, CMP_NEQ} 
-    literals = {';', '=', '+', '-', '(', ')', ',', '!'}
+    literals = {';', '=', '+', '-', '(', ')', ',', '!', '{', '}'}
 
     #@_(r'prints "[^"]*"')
     #def KW_PRINTS(self, t):
