@@ -228,20 +228,31 @@ class Machine:
         if stmt.type == 'if':
             self.eval_expr(vars, stmt.params)
 
-            # self-explanatory
-            self.bf_program += '[>'
-            self.tape_pos += 1
-            
-            # if it isn't, enclose the if's body in a block
-            # or else things like `if (...) var a;` would do unexpected things
-            if type(stmt.command) == rules.CodeBlock:
-                self.eval_block(vars, stmt.command)
-            else:
-                self.eval_block(vars, rules.CodeBlock([stmt.command]))
+            def _exec_as_block(cmd):
+                if type(cmd) == rules.CodeBlock:
+                    self.eval_block(vars, cmd)
+                else:
+                    self.eval_block(vars, rules.CodeBlock([cmd]))
 
-            # set the control value to 0 and end the statement
-            self.bf_program += '<[-]]'
-            self.tape_pos -= 1
+            # set a cell next to the current one to 1. if the positive branch is
+            # executed, we set this cell to 0 (at the end of the []). we then use
+            # this cell to determine whether to execute the exit branch.
+            self.bf_program += '>[-]+<['
+
+            # command[0] = positive branch, command[1] = else branch
+            
+            _exec_as_block(stmt.command[0])
+            
+            # set the else flag to 0 and end the loop ([])
+            self.bf_program += '>[-]]<'
+
+            # if the statement has an else branch, process it accordingly
+            if stmt.command[1]:
+                self.bf_program += '>[<'
+                _exec_as_block(stmt.command[1])
+                self.bf_program += '>[-]]<'
+                
+                
         elif stmt.type == 'while':
             self.eval_expr(vars, stmt.params)
 

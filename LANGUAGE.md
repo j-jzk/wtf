@@ -47,6 +47,10 @@ x = (4 == 5) - 1;  #x = (4 == 5) - 1 -> 1 - 1  -> 0
 ## Conditions and loops
 WTF supports `if` and `while` statements. The body is executed if the condition is non-zero.
 
+### If
+An if statement is written like `if (condition) do_something` or like `if (condition) do_something else do_something`, where `do_something` is either a code block (`{ command; command; ... }`) or a single command.
+Please note that, like in C, if the _if_'s body is a single command, it must end with a semicolon `;`.
+
 Examples:
 ```wtf
 # if statement with a single command
@@ -59,6 +63,16 @@ if (2 + 2 == 5) {
 	print(2 + 2);
 }
 
+# if statement with an else branch
+if (read() == 'y')
+	prints("yes");  #note the semicolon
+else
+	prints("no");
+```
+
+### While
+Example:
+```wtf
 # while loop - counts from 0 to 9
 var i = 0;
 while (i != 10) {

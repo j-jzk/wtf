@@ -23,8 +23,14 @@ class WtfParser(Parser):
     # regular commands
     @_('assignment ";"', 'declaration ";"', 'func_call ";"', 'code_block')
     def command(self, p): return p[0]
-    @_('KW_IF "(" expr ")" command', 'KW_WHILE "(" expr ")" command')
-    def command(self, p): return rules.ControlStmt(p[0], p.expr, p.command)
+    
+    # control statements
+    @_('KW_IF "(" expr ")" command')
+    def command(self, p): return rules.ControlStmt('if', p.expr, (p.command, None))
+    @_('KW_IF "(" expr ")" command KW_ELSE command')
+    def command(self, p): return rules.ControlStmt('if', p.expr, (p.command0, p.command1))
+    @_('KW_WHILE "(" expr ")" command')
+    def command(self, p): return rules.ControlStmt('while', p.expr, p.command)
 
     # variable declaration and assignment
     @_('KW_VAR ID')
