@@ -244,7 +244,7 @@ class Machine:
             _exec_as_block(stmt.command[0])
             
             # set the else flag to 0 and end the loop ([])
-            self.bf_program += '>[-]]<'
+            self.bf_program += '>[-]< [-]]'
 
             # if the statement has an else branch, process it accordingly
             if stmt.command[1]:
