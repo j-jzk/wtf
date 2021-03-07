@@ -20,17 +20,31 @@ class WtfParser(Parser):
     @_('"{" program "}"')
     def code_block(self, p): return rules.CodeBlock(p.program)
 
-    # regular commands
-    @_('assignment ";"', 'declaration ";"', 'func_call ";"', 'code_block')
+    # commands
+    @_('command_nosemi ";"', 'command_nosemi_val')
     def command(self, p): return p[0]
+    @_('command_nosemi_inv') #TODO add support for all commands
+    def command_nosemi(self, p): return p[0]
+
+    # commands that are valid top-level only with a semicolon
+    @_('assignment', 'declaration', 'func_call')
+    def command_nosemi_inv(self, p): return p[0]
+    # commands that are valid top-level even without a semicolon
+    @_('control_stmt', 'code_block')
+    def command_nosemi_val(self, p): return p[0]
+
     
     # control statements
     @_('KW_IF "(" expr ")" command')
-    def command(self, p): return rules.ControlStmt('if', p.expr, (p.command, None))
+    def control_stmt(self, p): return rules.ControlStmt('if', p.expr, (p.command, None))
     @_('KW_IF "(" expr ")" command KW_ELSE command')
-    def command(self, p): return rules.ControlStmt('if', p.expr, (p.command0, p.command1))
+    def control_stmt(self, p):
+        return rules.ControlStmt('if', p.expr, (p.command0, p.command1))
     @_('KW_WHILE "(" expr ")" command')
-    def command(self, p): return rules.ControlStmt('while', p.expr, p.command)
+    def control_stmt(self, p): return rules.ControlStmt('while', p.expr, p.command)
+    @_('KW_FOR "(" command expr ";" command_nosemi ")" command')
+    def control_stmt(self, p):
+        return rules.ControlStmt('for', (p.command0, p.expr, p.command_nosemi), p.command1)
 
     # variable declaration and assignment
     @_('KW_VAR ID')

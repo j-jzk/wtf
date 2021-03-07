@@ -45,8 +45,6 @@ x = (4 == 5) - 1;  #x = (4 == 5) - 1 -> 1 - 1  -> 0
 ```
 
 ## Conditions and loops
-WTF supports `if` and `while` statements. The body is executed if the condition is non-zero.
-
 ### If
 An if statement is written like `if (condition) do_something` or like `if (condition) do_something else do_something`, where `do_something` is either a code block (`{ command; command; ... }`) or a single command.
 Please note that, like in C, if the _if_'s body is a single command, it must end with a semicolon `;`.
@@ -80,6 +78,16 @@ while (i != 10) {
 	print('\n');
 
 	i = i + 1;
+}
+```
+
+### For
+For loops work like in any other C-like language. There is no support for _foreach_ loops.
+
+```wtf
+for (var i = 0; i != 10; i = i+1) {
+	print(i + '0');
+	print(' ');
 }
 ```
 

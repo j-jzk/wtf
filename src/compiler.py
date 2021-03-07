@@ -272,6 +272,20 @@ class Machine:
 
             self.eval_expr(vars, stmt.params)
             self.bf_program += ']'
+        elif stmt.type == 'for':
+            cmd_block = None
+            if type(stmt.command) == rules.CodeBlock:
+                cmd_block = stmt.command
+            else:
+                cmd_block = rules.CodeBlock([stmt.command])
+
+            # add the command that executes on each iteration
+            cmd_block.commands += [stmt.params[2]]
+
+            self.eval_block(vars, rules.CodeBlock([
+                stmt.params[0], #initialization command
+                rules.ControlStmt('while', stmt.params[1], cmd_block)
+            ]))
         else:
             raise Exception('Invalid statement type `%s`' % stmt.type)
 
