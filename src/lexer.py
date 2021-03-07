@@ -3,7 +3,7 @@ from sly import Lexer
 class WtfLexer(Lexer):
     # tokens
     tokens = {ID, LIT_CHAR, LIT_INT, LIT_STR, CMP_EQ, CMP_NEQ,
-              KW_VAR, KW_IF, KW_ELSE, KW_WHILE, KW_FOR} 
+              KW_VAR, KW_IF, KW_ELSE, KW_WHILE, KW_FOR, KW_REPEAT} 
     literals = {';', '=', '+', '-', '(', ')', ',', '!', '{', '}'}
 
     ID = '[a-zA-Z_][a-zA-Z0-9_]*'
@@ -12,6 +12,7 @@ class WtfLexer(Lexer):
     ID['while'] = KW_WHILE
     ID['else'] = KW_ELSE
     ID['for'] = KW_FOR
+    ID['repeat'] = KW_REPEAT
 
     CMP_EQ = '=='
     CMP_NEQ = '!='

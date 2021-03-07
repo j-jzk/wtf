@@ -225,14 +225,14 @@ class Machine:
     def eval_control(self, vars, stmt):
         self.debug('<eval_control> %s' % stmt)
 
+        def _exec_as_block(cmd):
+            if type(cmd) == rules.CodeBlock:
+                self.eval_block(vars, cmd)
+            else:
+                self.eval_block(vars, rules.CodeBlock([cmd]))
+
         if stmt.type == 'if':
             self.eval_expr(vars, stmt.params)
-
-            def _exec_as_block(cmd):
-                if type(cmd) == rules.CodeBlock:
-                    self.eval_block(vars, cmd)
-                else:
-                    self.eval_block(vars, rules.CodeBlock([cmd]))
 
             # set a cell next to the current one to 1. if the positive branch is
             # executed, we set this cell to 0 (at the end of the []). we then use
@@ -251,8 +251,6 @@ class Machine:
                 self.bf_program += '>[<'
                 _exec_as_block(stmt.command[1])
                 self.bf_program += '>[-]]<'
-                
-                
         elif stmt.type == 'while':
             self.eval_expr(vars, stmt.params)
 
@@ -286,6 +284,18 @@ class Machine:
                 stmt.params[0], #initialization command
                 rules.ControlStmt('while', stmt.params[1], cmd_block)
             ]))
+        elif stmt.type == 'repeat':
+            self.eval_expr(vars, stmt.params)
+
+            # start the loop and shift right
+            self.bf_program += '[>'
+            self.tape_pos += 1
+
+            _exec_as_block(stmt.command)
+
+            # decrease the iteration cell
+            self.bf_program += '<-]'
+            self.tape_pos -= 1
         else:
             raise Exception('Invalid statement type `%s`' % stmt.type)
 

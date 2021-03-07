@@ -91,6 +91,25 @@ for (var i = 0; i != 10; i = i+1) {
 }
 ```
 
+If you just want to repeat a block of code several times, it is better to use the `repeat` loop because it is more efficient.
+
+### Repeat
+`repeat (n) command` repeats a _command_ _n_ times. It is more efficient than a regular for loop because it doesn't need to evaluate a lot of expressions that are needed in a for loop.
+
+Example:
+```wtf
+# prints "hello" 10 times
+repeat(10) {
+	prints("hello");
+	print('\n');
+}
+
+# prints a hyphen given nuber of times
+prints("Enter a digit: ");
+repeat(read() - '0')
+	print('-');
+```
+
 ## Functions
 Functions are called with parenthesis like this:
 ```wtf

@@ -45,6 +45,8 @@ class WtfParser(Parser):
     @_('KW_FOR "(" command expr ";" command_nosemi ")" command')
     def control_stmt(self, p):
         return rules.ControlStmt('for', (p.command0, p.expr, p.command_nosemi), p.command1)
+    @_('KW_REPEAT "(" expr ")" command')
+    def control_stmt(self, p): return rules.ControlStmt('repeat', p.expr, p.command)
 
     # variable declaration and assignment
     @_('KW_VAR ID')
