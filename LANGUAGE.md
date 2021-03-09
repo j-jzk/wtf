@@ -29,12 +29,14 @@ print(x + '0'); #prints the character '1'
 ```
 
 ### Comparisons
-WTF currently supports the operators `==` and `!=`.
+WTF currently supports operators of equality and inequality (`==` and `!=`) and regular comparison operators (`>`, `<`, `>=` and `>=`).
+
 ```wtf
 x = 4 == 5;    #x = 0
 x = 4 == 5-1;  #x = 1
 x = 5 != 5;    #x = 0
 x = 4 != 5;    #x = 1
+...
 ```
 
 ### Parenthesis

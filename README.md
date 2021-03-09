@@ -16,6 +16,13 @@ This behavior can be controlled with the variable `enableDebug` in the Machine c
 Errors in the program are not handled properly and they might go undetected.
 If the compiled program doesn't work as it should, you have to inspect the source code or the generated brainfuck code with debug messages enabled.
 
+If you find a bug in the compiler, please report it in the [issues](https://github.com/j-jzk/wtf/issues).
+If you have a lot of free time and patience, you can also fix the bug yourself.
+If you do so, feel free to submit a pull request here.
+
+The parser currently reports `WARNING: 1 shift/reduce conflict`.
+This is fine (see [Dangling else problem](https://en.wikipedia.org/wiki/Dangling_else) on Wikipedia) - I just don't know how to turn the warning off (or even better, change the parser so there is no conflict).
+
 ## Thank you
 I would like to thank David Beazley for the amazing tool [SLY](https://github.com/dabeaz/sly) which powers the lexical analyser and parser of WTF.
 The license of SLY can be seen [here](https://github.com/dabeaz/sly/blob/master/LICENSE).
