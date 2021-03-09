@@ -3,8 +3,9 @@ from sly import Lexer
 class WtfLexer(Lexer):
     # tokens
     tokens = {ID, LIT_CHAR, LIT_INT, LIT_STR, CMP_EQ, CMP_NEQ,
-              KW_VAR, KW_IF, KW_ELSE, KW_WHILE, KW_FOR, KW_REPEAT} 
-    literals = {';', '=', '+', '-', '(', ')', ',', '!', '{', '}'}
+              KW_VAR, KW_IF, KW_ELSE, KW_WHILE, KW_FOR, KW_REPEAT,
+              CMP_LE, CMP_GE} 
+    literals = {';', '=', '+', '-', '(', ')', ',', '!', '{', '}', '<', '>'}
 
     ID = '[a-zA-Z_][a-zA-Z0-9_]*'
     ID['var'] = KW_VAR
@@ -16,6 +17,8 @@ class WtfLexer(Lexer):
 
     CMP_EQ = '=='
     CMP_NEQ = '!='
+    CMP_LE = '<='
+    CMP_GE = '>='
 
     @_(r'\d+')
     def LIT_INT(self, t):

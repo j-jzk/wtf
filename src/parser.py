@@ -6,7 +6,7 @@ class WtfParser(Parser):
     tokens = WtfLexer.tokens
 
     precedence = (
-        ('nonassoc', 'CMP_EQ', 'CMP_NEQ'),
+        ('nonassoc', 'CMP_EQ', 'CMP_NEQ', 'CMP_LE', 'CMP_GE', '<', '>'),
         ('left', '+', '-')
     )
 
@@ -68,12 +68,16 @@ class WtfParser(Parser):
     def func_call_params(self, p): return []
 
     # expressions
-    @_('expr "+" expr', 'expr "-" expr',
-        'expr CMP_EQ expr', 'expr CMP_NEQ expr')
+#    @_('expr bin_op expr')
+    @_('expr "+" expr', 'expr "-" expr', 'expr CMP_EQ expr', 'expr CMP_NEQ expr',
+        'expr "<" expr', 'expr ">" expr', 'expr CMP_LE expr', 'expr CMP_GE expr')
     def expr(self, p):
         return rules.BinaryOp(p[1], p.expr0, p.expr1)
     @_('term')
     def expr(self, p): return p.term
+
+#    @_('"+"', '"-"', 'CMP_EQ', 'CMP_NEQ', 'CMP_LE', 'CMP_GE', '"<"', '">"')
+#    def bin_op(self, p): return p[0]
 
     # `term` is for future use
     @_('factor')

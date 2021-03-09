@@ -143,7 +143,64 @@ class Machine:
             # equality is implemented through negated inequality
             self.eval_func(vars, rules.FuncCall('not', [
                 rules.BinaryOp('!=', expr.left, expr.right)]))
+        elif expr.op == '<=':
+            # cell values: (result) (a) (b) 0 1
+            #     numbers:    0      1   2  3 4
 
+            # prepare the cell values
+            self.bf_program += '[-]>'
+            self.tape_pos += 1
+            _eval_params()
+            self.bf_program += '>>[-]>[-]+<<'
+            self.tape_pos += 1
+            # we are now on cell 2
+            
+            # this is for handling the case when a = 0. we set the result cell
+            # to 1 (since (0 <= x) = true) and then surround the entirety of
+            # the algorithm in [] so that it is run only when a != 0
+            # at the start of the brackets, we set the result cell back to 0.
+            self.bf_program += '<<+>[<->>'
+            # we are now on cell 2
+
+            # we start subtracting b from a. the [<] is run everytime except in
+            # the case cell 1 (a) has reached 0. the whole [<]>> means that:
+            #  - if cell 1 != 0, it shifts to cell 2
+            #  - if cell 1 = 0, the [<] is not executed so we end up in cell 3,
+            #    which is set to 0 and that ends the loop.
+            # when we do [<, we will be shifted to the result cell (set to 0),
+            # so we don't cause and infinite loop with the ].
+            # the whole loop does this:
+            #  - if we first reach 0 in cell 1 (a <= b), we end up in cell 3
+            #  - if we first reach 0 in cell 2 (b < a), we end up in cell 2
+            self.bf_program += '[-<- [<]>> ]'
+
+            # we then shift one cell right, so that
+            #  - if a <= b, we are in cell 4 (set to 1)
+            #  - if a > b, we are in cell 3 (set to 0)
+            # the code in brackets then only executes when we are in cell 4
+            # = when a <= b. in the brackets, we set the result to 1 and shift
+            # back to the 3rd cell so that we are in the same cell regardless on
+            # where we were previously.
+            self.bf_program += '>[ <<<<+ >>>]'
+
+            # we shift to cell 0, set it to [-] so we don't cause an infinite
+            # loop, end the brackets responsible for handling a = 0 and shift
+            # to the result cell.
+            self.bf_program += '<<[-]]<'
+        elif expr.op == '>=':
+            # (a >= b) === (b <= a)
+            self.eval_operation(vars,
+                rules.BinaryOp('<=', expr.right, expr.left))
+        elif expr.op == '>':
+            # (a > b) === !(a <= b)
+            self.eval_func(vars, rules.FuncCall('not', [
+                rules.BinaryOp('<=', expr.left, expr.right)
+            ]))
+        elif expr.op == '<':
+            # (a < b) === !(a >= b) === !(b <= a)
+            self.eval_func(vars, rules.FuncCall('not', [
+                rules.BinaryOp('<=', expr.right, expr.left)
+            ]))
         self.debug('</eval_operation>')
 
     def eval_id(self, vars, id):
